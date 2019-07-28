@@ -9,14 +9,15 @@ for /F "tokens=1,2,3,4 delims= " %%i in (build\build.no.stable) do (
   )
 )
 
+call a_SetVar%tp%.bat
+
 if /i '%tp%' == '64' set bit=_x64
-if /i '%tp%' == '32' set CompileString=..\Tools\InnoSetup5\ISCC.exe /Dptx86 /DAppVer=%MirVer% "MirandaNG.iss" 
-if /i '%tp%' == '64' set CompileString=..\Tools\InnoSetup5\ISCC.exe /DAppVer=%MirVer% "MirandaNG.iss"
+if /i '%tp%' == '32' set CompileString=%ISCC% /Dptx86 /DAppVer=%MirVer% "MirandaNG.iss" 
+if /i '%tp%' == '64' set CompileString=%ISCC% /DAppVer=%MirVer% "MirandaNG.iss"
 
 set comp=%2
 if "%comp%"=="" (echo "please specify target compiler folder!" && pause && goto :EOF)
 
-call a_SetVar%tp%.bat
 if not exist %ArchDistr% mkdir %ArchDistr%
 
 pushd "%comp%\Symbols%tp%"
