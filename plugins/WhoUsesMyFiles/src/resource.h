@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by ..\res\resource.rc
+// Used by w:\miranda-ng\plugins\WhoUsesMyFiles\res\resource.rc
 //
 #define IDD_OPTIONS                     101
 #define IDI_DRIVE                       106
@@ -22,10 +22,6 @@
 #define IDC_LOG_INTO_FILE               1054
 #define IDC_LOG_FOLDER                  1055
 #define IDC_ALERT_FOLDER                1056
-#define IDC_LOG_UNC                     1057
-#define IDC_ALERT_UNC                   1058
-#define IDC_LOG_COMP                    1059
-#define IDC_ALERT_COMP                  1060
 #define IDC_CONNLIST                    1061
 #define IDC_CONN                        1062
 
@@ -34,7 +30,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_3D_CONTROLS                     1
+#define _APS_3D_CONTROLS                1
 #define _APS_NEXT_RESOURCE_VALUE        109
 #define _APS_NEXT_COMMAND_VALUE         40081
 #define _APS_NEXT_CONTROL_VALUE         1063
