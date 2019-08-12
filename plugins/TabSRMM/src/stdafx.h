@@ -119,7 +119,6 @@ typedef struct _DWM_THUMBNAIL_PROPERTIES
 #include "functions.h"
 #include "chat.h"
 #include "contactcache.h"
-#include "translator.h"
 #include "themes.h"
 #include "globals.h"
 #include "mim.h"
@@ -241,16 +240,9 @@ INT_PTR SendMessageCommand(WPARAM, LPARAM);
 INT_PTR SendMessageCommand_W(WPARAM, LPARAM);
 INT_PTR SetUserPrefs(WPARAM, LPARAM);
 
-#define IMG_NOCHECK	0
-#define IMG_CHECK	1
-#define IMG_GRPOPEN	2
-#define IMG_GRPCLOSED	3
-HIMAGELIST CreateStateImageList();
-void TreeViewInit(HWND hwndTree, UINT id, DWORD dwFlags, BOOL bFromMem);
-void TreeViewDestroy(HWND hwndTree);
-void TreeViewSetFromDB(HWND hwndTree, UINT id, DWORD dwFlags);
-void TreeViewToDB(HWND hwndTree, UINT id, char *DBPath, DWORD *dwFlags);
-BOOL TreeViewHandleClick(HWND hwndDlg, HWND hwndTree, WPARAM wParam, LPARAM lParam);
+void TreeViewInit(HWND hwndTree, TOptionListGroup *lvGroups, TOptionListItem *lvItems, const char *DBPath, DWORD dwFlags = 0, bool bFromMem = false);
+void TreeViewSetFromDB(HWND hwndTree, TOptionListItem *lvItems, DWORD dwFlags);
+void TreeViewToDB(HWND hwndTree, TOptionListItem *lvItems, const char *DBPath, DWORD *dwFlags);
 
 INT_PTR CALLBACK DlgProcSetupStatusModes(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 
