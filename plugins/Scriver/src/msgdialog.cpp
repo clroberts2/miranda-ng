@@ -23,8 +23,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "stdafx.h"
 
-#define VALID_AVATAR(x)      (x==PA_FORMAT_PNG||x==PA_FORMAT_JPEG||x==PA_FORMAT_ICON||x==PA_FORMAT_BMP||x==PA_FORMAT_GIF)
-
 static wchar_t* GetQuotedTextW(wchar_t *text)
 {
 	size_t i, j, l = mir_wstrlen(text);
@@ -162,7 +160,7 @@ CSrmmWindow::CSrmmWindow(MCONTACT hContact, bool bIncoming)
 {
 	m_hContact = hContact;
 
-	m_hwndParent = GetParentWindow(hContact, FALSE);
+	m_hwndParent = GetParentWindow(hContact, false);
 
 	m_btnOk.OnClick = Callback(this, &CSrmmWindow::onClick_Ok);
 	m_btnAdd.OnClick = Callback(this, &CSrmmWindow::onClick_Add);
@@ -197,7 +195,7 @@ bool CSrmmWindow::OnInitDialog()
 	m_startTime = time(0);
 
 	m_bUseRtl = g_plugin.getByte(m_hContact, "UseRTL", 0) != 0;
-	m_bUseIEView = g_dat.ieviewInstalled ? (g_dat.flags & SMF_USEIEVIEW) != 0 : false;
+	m_bUseIEView = g_dat.ieviewInstalled ? g_dat.flags.bUseIeview : false;
 
 	PARAFORMAT2 pf2;
 	memset(&pf2, 0, sizeof(pf2));
@@ -243,7 +241,7 @@ bool CSrmmWindow::OnInitDialog()
 		m_message.SetText(m_wszInitialText);
 		mir_free(m_wszInitialText);
 	}
-	else if (g_dat.flags & SMF_SAVEDRAFTS) {
+	else if (g_dat.flags.bSaveDrafts) {
 		int len = 0;
 		ptrW ptszSavedMsg(db_get_wsa(m_hContact, "SRMM", "SavedMsg"));
 		if (ptszSavedMsg)
@@ -288,7 +286,7 @@ bool CSrmmWindow::OnInitDialog()
 
 	bool notifyUnread = false;
 	if (m_hContact) {
-		int historyMode = g_plugin.getByte(SRMSGSET_LOADHISTORY, SRMSGDEFSET_LOADHISTORY);
+		int historyMode = g_plugin.iHistoryMode;
 		// This finds the first message to display, it works like shit
 		m_hDbEventFirst = db_event_firstUnread(m_hContact);
 		if (m_hDbEventFirst != 0) {
@@ -302,7 +300,7 @@ bool CSrmmWindow::OnInitDialog()
 		MEVENT hPrevEvent;
 		switch (historyMode) {
 		case LOADHISTORY_COUNT:
-			for (int i = g_plugin.getWord(SRMSGSET_LOADCOUNT, SRMSGDEFSET_LOADCOUNT); i > 0; i--) {
+			for (int i = g_plugin.iLoadCount; i > 0; i--) {
 				if (m_hDbEventFirst == 0)
 					hPrevEvent = db_event_last(m_hContact);
 				else
@@ -326,7 +324,8 @@ bool CSrmmWindow::OnInitDialog()
 				db_event_get(m_hDbEventFirst, &dbei);
 				hPrevEvent = db_event_prev(m_hContact, m_hDbEventFirst);
 			}
-			DWORD firstTime = dbei.timestamp - 60 * g_plugin.getWord(SRMSGSET_LOADTIME, SRMSGDEFSET_LOADTIME);
+			
+			DWORD firstTime = dbei.timestamp - 60 * g_plugin.iLoadTime;
 			for (;;) {
 				if (hPrevEvent == 0)
 					break;
@@ -393,7 +392,7 @@ void CSrmmWindow::OnDestroy()
 	}	
 
 	ReleaseSendQueueItems(m_hwnd);
-	if (g_dat.flags & SMF_SAVEDRAFTS) {
+	if (g_dat.flags.bSaveDrafts) {
 		ptrA szText(m_message.GetRichTextRtf(true));
 		if (szText)
 			db_set_utf(m_hContact, "SRMM", "SavedMsg", szText);
@@ -408,7 +407,7 @@ void CSrmmWindow::OnDestroy()
 		DeleteObject(hFont);
 
 	g_plugin.setByte(m_hContact, "UseRTL", m_bUseRtl);
-	if (m_hContact && (g_dat.flags & SMF_DELTEMP)) {
+	if (m_hContact && g_dat.flags.bDelTemp) {
 		m_hContact = INVALID_CONTACT_ID; // to prevent recursion
 
 		if (db_get_b(m_hContact, "CList", "NotOnList", 0))
@@ -468,7 +467,7 @@ void CSrmmWindow::onClick_Ok(CCtrlButton *pButton)
 
 	m_message.SetText(L"");
 	EnableWindow(GetDlgItem(m_hwnd, IDOK), FALSE);
-	if (g_plugin.getByte(SRMSGSET_AUTOMIN, SRMSGDEFSET_AUTOMIN))
+	if (g_plugin.bAutoMin)
 		ShowWindow(m_hwndParent, SW_MINIMIZE);
 
 	if (pButton == nullptr)
@@ -593,7 +592,7 @@ HICON CSrmmWindow::GetTabIcon()
 
 void CSrmmWindow::GetTitlebarIcon(TitleBarData *tbd)
 {
-	if (m_bShowTyping && (g_dat.flags2 & SMF2_SHOWTYPINGWIN))
+	if (m_bShowTyping && g_dat.flags2.bShowTypingWin)
 		tbd->hIconNot = tbd->hIcon = g_plugin.getIcon(IDI_TYPING);
 	else if (m_iShowUnread && (GetActiveWindow() != m_hwndParent || GetForegroundWindow() != m_hwndParent)) {
 		tbd->hIcon = m_hStatusIcon;
@@ -619,7 +618,7 @@ bool CSrmmWindow::IsTypingNotificationSupported()
 
 bool CSrmmWindow::IsTypingNotificationEnabled()
 {
-	if (!g_plugin.getByte(m_hContact, SRMSGSET_TYPING, g_plugin.getByte(SRMSGSET_TYPINGNEW, SRMSGDEFSET_TYPINGNEW)))
+	if (!g_plugin.getByte(m_hContact, SRMSGSET_TYPING, g_plugin.bTypingNew))
 		return FALSE;
 
 	DWORD protoStatus = Proto_GetStatus(m_szProto);
@@ -633,8 +632,7 @@ bool CSrmmWindow::IsTypingNotificationEnabled()
 	if (protoCaps & PF1_INVISLIST && protoStatus == ID_STATUS_INVISIBLE && db_get_w(m_hContact, m_szProto, "ApparentMode", 0) != ID_STATUS_ONLINE)
 		return FALSE;
 
-	if (db_get_b(m_hContact, "CList", "NotOnList", 0)
-		&& !g_plugin.getByte(SRMSGSET_TYPINGUNKNOWN, SRMSGDEFSET_TYPINGUNKNOWN))
+	if (db_get_b(m_hContact, "CList", "NotOnList", 0) && !g_plugin.bTypingUnknown)
 		return FALSE;
 	return TRUE;
 }
@@ -692,7 +690,7 @@ void CSrmmWindow::SetDialogToType()
 		showToolbar = false;
 
 	ParentWindowData *pdat = m_pParent;
-	if (pdat->flags2 & SMF2_SHOWINFOBAR)
+	if (pdat->flags2.bShowInfoBar)
 		ShowWindow(m_hwndInfo, SW_SHOW);
 	else
 		ShowWindow(m_hwndInfo, SW_HIDE);
@@ -745,7 +743,7 @@ void CSrmmWindow::UpdateStatusBar()
 		wchar_t szText[256];
 		StatusBarData sbd = { 0 };
 		sbd.iFlags = SBDF_TEXT | SBDF_ICON;
-		if (m_iMessagesInProgress && (g_dat.flags & SMF_SHOWPROGRESS)) {
+		if (m_iMessagesInProgress && g_dat.flags.bShowProgress) {
 			sbd.hIcon = g_plugin.getIcon(IDI_TIMESTAMP);
 			sbd.pszText = szText;
 			mir_snwprintf(szText, TranslateT("Sending in progress: %d message(s) left..."), m_iMessagesInProgress);
@@ -770,8 +768,8 @@ void CSrmmWindow::UpdateStatusBar()
 
 		Srmm_SetIconFlags(m_hContact, SRMM_MODULE, 0, MBF_DISABLED);
 
-		if (IsTypingNotificationSupported() && g_dat.flags2 & SMF2_SHOWTYPINGSWITCH) {
-			int mode = g_plugin.getByte(m_hContact, SRMSGSET_TYPING, g_plugin.getByte(SRMSGSET_TYPINGNEW, SRMSGDEFSET_TYPINGNEW));
+		if (IsTypingNotificationSupported() && g_dat.flags2.bShowTypingSwitch) {
+			int mode = g_plugin.getByte(m_hContact, SRMSGSET_TYPING, g_plugin.bTypingNew);
 			Srmm_SetIconFlags(m_hContact, SRMM_MODULE, 1, mode ? 0 : MBF_DISABLED);
 		}
 		else Srmm_SetIconFlags(m_hContact, SRMM_MODULE, 1, MBF_HIDDEN);
@@ -837,7 +835,7 @@ void CSrmmWindow::UpdateTitle()
 void CSrmmWindow::MessageDialogResize(int w, int h)
 {
 	ParentWindowData *pdat = m_pParent;
-	bool bToolbar = (pdat->flags2 & SMF2_SHOWTOOLBAR) != 0;
+	bool bToolbar = (pdat->flags2.bShowToolBar) != 0;
 	int hSplitterPos = pdat->iSplitterY, toolbarHeight = (bToolbar) ? TOOLBAR_HEIGHT : 0;
 	int hSplitterMinTop = toolbarHeight + m_minLogBoxHeight, hSplitterMinBottom = m_minEditBoxHeight;
 	int infobarInnerHeight = INFO_BAR_INNER_HEIGHT;
@@ -849,7 +847,7 @@ void CSrmmWindow::MessageDialogResize(int w, int h)
 	if (hSplitterMinBottom < g_dat.minInputAreaHeight)
 		hSplitterMinBottom = g_dat.minInputAreaHeight;
 
-	if (!(pdat->flags2 & SMF2_SHOWINFOBAR)) {
+	if (!pdat->flags2.bShowInfoBar) {
 		infobarHeight = 0;
 		infobarInnerHeight = 0;
 	}
@@ -866,8 +864,8 @@ void CSrmmWindow::MessageDialogResize(int w, int h)
 	if (hSplitterPos < hSplitterMinBottom)
 		hSplitterPos = hSplitterMinBottom;
 
-	if (!(pdat->flags2 & SMF2_SHOWINFOBAR)) {
-		if (m_hbmpAvatarPic && (g_dat.flags & SMF_AVATAR)) {
+	if (!pdat->flags2.bShowInfoBar) {
+		if (m_hbmpAvatarPic && g_dat.flags.bShowAvatar) {
 			avatarWidth = BOTTOM_RIGHT_AVATAR_HEIGHT;
 			avatarHeight = toolbarHeight + hSplitterPos - 2;
 			if (avatarHeight < BOTTOM_RIGHT_AVATAR_HEIGHT) {
@@ -1178,7 +1176,7 @@ INT_PTR CSrmmWindow::DlgProc(UINT msg, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case DM_OPTIONSAPPLIED:
-		m_bUseIEView = g_dat.ieviewInstalled ? (g_dat.flags & SMF_USEIEVIEW) != 0 : false;
+		m_bUseIEView = g_dat.ieviewInstalled ? g_dat.flags.bUseIeview : false;
 		if (m_bUseIEView && m_hwndIeview == nullptr) {
 			IEVIEWWINDOW ieWindow = { sizeof(ieWindow) };
 			ieWindow.iType = IEW_CREATE;
@@ -1231,7 +1229,7 @@ INT_PTR CSrmmWindow::DlgProc(UINT msg, WPARAM wParam, LPARAM lParam)
 		memset(&pf2, 0, sizeof(pf2));
 		pf2.cbSize = sizeof(pf2);
 		pf2.dwMask = PFM_OFFSET;
-		pf2.dxOffset = (g_dat.flags & SMF_INDENTTEXT) ? g_dat.indentSize * 1440 / g_dat.logPixelSX : 0;
+		pf2.dxOffset = (g_dat.flags.bIndentText) ? g_dat.indentSize * 1440 / g_dat.logPixelSX : 0;
 
 		ClearLog();
 		m_log.SendMsg(EM_SETPARAFORMAT, 0, (LPARAM)&pf2);
@@ -1268,7 +1266,7 @@ INT_PTR CSrmmWindow::DlgProc(UINT msg, WPARAM wParam, LPARAM lParam)
 
 	case DM_SWITCHTYPING:
 		if (IsTypingNotificationSupported()) {
-			BYTE typingNotify = (g_plugin.getByte(m_hContact, SRMSGSET_TYPING, g_plugin.getByte(SRMSGSET_TYPINGNEW, SRMSGDEFSET_TYPINGNEW)));
+			BYTE typingNotify = (g_plugin.getByte(m_hContact, SRMSGSET_TYPING, g_plugin.bTypingNew));
 			g_plugin.setByte(m_hContact, SRMSGSET_TYPING, (BYTE)!typingNotify);
 			Srmm_SetIconFlags(m_hContact, SRMM_MODULE, 1, typingNotify ? MBF_DISABLED : 0);
 		}
@@ -1388,7 +1386,7 @@ INT_PTR CSrmmWindow::DlgProc(UINT msg, WPARAM wParam, LPARAM lParam)
 						Skin_PlaySound("RecvMsgActive");
 					else
 						Skin_PlaySound("RecvMsgInactive");
-					if ((g_dat.flags2 & SMF2_SWITCHTOACTIVE) && (IsIconic(m_hwndParent) || GetActiveWindow() != m_hwndParent) && IsWindowVisible(m_hwndParent))
+					if (g_dat.flags2.bSwitchToActive && (IsIconic(m_hwndParent) || GetActiveWindow() != m_hwndParent) && IsWindowVisible(m_hwndParent))
 						SendMessage(m_hwndParent, CM_ACTIVATECHILD, 0, (LPARAM)m_hwnd);
 					if (IsAutoPopup(m_hContact))
 						SendMessage(m_hwndParent, CM_POPUPWINDOW, 1, (LPARAM)m_hwnd);
@@ -1480,14 +1478,14 @@ INT_PTR CSrmmWindow::DlgProc(UINT msg, WPARAM wParam, LPARAM lParam)
 		m_iMessagesInProgress++;
 	case DM_SHOWMESSAGESENDING:
 		SetTimer(m_hwnd, TIMERID_MSGSEND, 1000, nullptr);
-		if (g_dat.flags & SMF_SHOWPROGRESS)
+		if (g_dat.flags.bShowProgress)
 			UpdateStatusBar();
 		break;
 
 	case DM_STOPMESSAGESENDING:
 		if (m_iMessagesInProgress > 0) {
 			m_iMessagesInProgress--;
-			if (g_dat.flags & SMF_SHOWPROGRESS)
+			if (g_dat.flags.bShowProgress)
 				UpdateStatusBar();
 		}
 		if (m_iMessagesInProgress == 0)
@@ -1540,7 +1538,7 @@ INT_PTR CSrmmWindow::DlgProc(UINT msg, WPARAM wParam, LPARAM lParam)
 				rect.bottom = itemHeight - 1;
 				FillRect(hdcMem, &rect, GetSysColorBrush(COLOR_BTNFACE));
 
-				if (m_hbmpAvatarPic && (g_dat.flags & SMF_AVATAR)) {
+				if (m_hbmpAvatarPic && g_dat.flags.bShowAvatar) {
 					BITMAP bminfo;
 					GetObject(m_hbmpAvatarPic, sizeof(bminfo), &bminfo);
 					if (bminfo.bmWidth != 0 && bminfo.bmHeight != 0) {

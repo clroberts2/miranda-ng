@@ -70,6 +70,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 struct CMPlugin : public PLUGIN<CMPlugin>
 {
+	CMOption<BYTE> bSavePerContact, bCascade, bStayMinimized, bAutoMin, bSaveDrafts, bDelTemp, bHideContainer, bAutoPopup;
+	CMOption<BYTE> bUseIeview, bUseTransparency, bTopmost, bAutoClose, bTypingNew, bTypingUnknown;
+	CMOption<BYTE> bShowTitleBar, bShowStatusBar, bShowToolBar, bShowInfoBar;
+	CMOption<BYTE> bShowAvatar, bShowProgress, bShowIcons, bShowTime, bShowSeconds, bShowDate, bLongDate, bRelativeDate;
+	CMOption<BYTE>	bGroupMessages, bMarkFollowups, bMsgOnNewline, bDrawLines, bHideNames, bIndentText;
+	CMOption<BYTE> bUseTabs, bLimitTabs, bLimitChatTabs, bLimitNames, bSeparateChats, bTabCloseButton, bHideOneTab, bTabsAtBottom, bSwitchToActive;
+	CMOption<BYTE> bShowTyping, bShowTypingWin, bShowTypingTray, bShowTypingClist, bShowTypingSwitch;
+	CMOption<BYTE> iFlashCount, iHistoryMode;
+	CMOption<WORD> iLimitNames, iLimitTabs, iLimitChatTabs, iLoadCount, iLoadTime, iIndentSize, iAutoResizeLines;
+	CMOption<DWORD> iPopFlags, iMsgTimeout, iActiveAlpha, iInactiveAlpha;
+
 	CMPlugin();
 
 	int Load() override;
@@ -115,8 +126,8 @@ int StatusIconPressed(WPARAM wParam, LPARAM lParam);
 
 #include "cmdlist.h"
 #include "sendqueue.h"
-#include "msgs.h"
 #include "globals.h"
+#include "msgs.h"
 #include "tabs.h"
 #include "utils.h"
 #include "input.h"

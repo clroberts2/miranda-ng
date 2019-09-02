@@ -856,7 +856,6 @@ LRESULT CChatRoomDlg::WndProc_Nicklist(UINT msg, WPARAM wParam, LPARAM lParam)
 
 INT_PTR CChatRoomDlg::DlgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	static HMENU hToolbarMenu;
 	RECT rc;
 	POINT pt;
 	HICON hIcon;
@@ -1069,7 +1068,7 @@ void ShowRoom(SESSION_INFO *si)
 	// Do we need to create a window?
 	CChatRoomDlg *pDlg;
 	if (si->pDlg == nullptr) {
-		HWND hParent = GetParentWindow(si->hContact, TRUE);
+		HWND hParent = GetParentWindow(si->hContact, true);
 
 		pDlg = new CChatRoomDlg(si);
 		pDlg->SetParent(hParent);
