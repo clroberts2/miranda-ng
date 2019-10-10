@@ -176,7 +176,6 @@ public:
 	void onClick_Add(CCtrlButton*);
 	void onClick_Quote(CCtrlButton*);
 	void onClick_Details(CCtrlButton*);
-	void onClick_History(CCtrlButton*);
 	void onClick_UserMenu(CCtrlButton*);
 
 	void onChange_Message(CCtrlEdit*);

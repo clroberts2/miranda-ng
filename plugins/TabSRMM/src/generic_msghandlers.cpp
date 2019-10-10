@@ -237,10 +237,6 @@ LRESULT CTabBaseDlg::DM_MsgWindowCmdHandler(UINT cmd, WPARAM wParam, LPARAM lPar
 			CallService(MS_USERINFO_SHOWDIALOG, (WPARAM)(m_cache->getActiveContact()), 0);
 		break;
 
-	case IDC_SRMM_HISTORY:
-		CallService(MS_HISTORY_SHOWCONTACTHISTORY, m_hContact, 0);
-		break;
-
 	case IDC_TIME:
 		submenu = GetSubMenu(PluginConfig.g_hMenuContext, 2);
 		MsgWindowUpdateMenu(submenu, MENU_LOGMENU);

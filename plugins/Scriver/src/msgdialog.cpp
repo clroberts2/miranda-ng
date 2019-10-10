@@ -548,11 +548,6 @@ void CSrmmWindow::onClick_Details(CCtrlButton*)
 	CallService(MS_USERINFO_SHOWDIALOG, m_hContact, 0);
 }
 
-void CSrmmWindow::onClick_History(CCtrlButton*)
-{
-	CallService(MS_HISTORY_SHOWCONTACTHISTORY, m_hContact, 0);
-}
-
 void CSrmmWindow::onChange_Message(CCtrlEdit*)
 {
 	int len = m_message.GetRichTextLength();
