@@ -96,7 +96,7 @@ void Meta_RemoveContactNumber(DBCachedContact *ccMeta, int number, bool bUpdateI
 	DBCachedContact *ccSub = currDb->getCache()->GetCachedContact(Meta_GetContactHandle(ccMeta, number));
 	if (ccSub != nullptr)
 		if (ccSub->parentID == ccMeta->contactID)
-			Contact_Hide(ccSub->contactID, false);
+			db_unset(ccSub->contactID, "CList", "Hidden");
 
 	// each contact from 'number' upwards will be moved down one
 	// and the last one will be deleted

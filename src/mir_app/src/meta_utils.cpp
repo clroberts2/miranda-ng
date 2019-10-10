@@ -181,7 +181,7 @@ BOOL Meta_Assign(MCONTACT hSub, MCONTACT hMeta, bool set_as_default)
 	currDb->MetaMergeHistory(ccDest, ccSub);
 
 	// hide sub finally
-	Contact_Hide(ccSub->contactID);
+	db_set_b(ccSub->contactID, "CList", "Hidden", 1);
 
 	NotifyEventHooks(hSubcontactsChanged, hMeta, 0);
 	return TRUE;
