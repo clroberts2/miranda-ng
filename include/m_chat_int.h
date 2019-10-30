@@ -474,8 +474,8 @@ public:
 
 	virtual void AddLog();
 	virtual void CloseTab() {}
-	virtual bool IsActive() const PURE;
-	virtual void LoadSettings() PURE;
+	virtual bool IsActive() const = 0;
+	virtual void LoadSettings() = 0;
 	virtual void RedrawLog() {}
 	virtual void ScrollToBottom() {}
 	virtual void SetStatusText(const wchar_t*, HICON) {}
@@ -484,7 +484,7 @@ public:
 	virtual void UpdateNickList() {}
 	virtual void UpdateOptions() {}
 	virtual void UpdateStatusBar() {}
-	virtual void UpdateTitle() PURE;
+	virtual void UpdateTitle() = 0;
 
 	virtual LRESULT WndProc_Log(UINT msg, WPARAM wParam, LPARAM lParam);
 	virtual LRESULT WndProc_Message(UINT msg, WPARAM wParam, LPARAM lParam);
